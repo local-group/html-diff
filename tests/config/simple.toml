@@ -1,30 +1,250 @@
 
+# Example::
 [[cases]]
-message = "should diff text"
-a = "a word is here"
-b = "a nother word is there"
-should = "a<ins class=\"diffins\"> nother</ins> word is <del class=\"diffmod\">here</del><ins class=\"diffmod\">there</ins>"
+old = "<p>This is some test text with some changes and some same stuff</p>"
+new = """
+<p>This is some test textual writing with some changed stuff
+and some same stuff</p>
+"""
+diff = """
+<p>This is some test <ins>textual writing with some changed stuff
+</ins> <del>text with some changes</del> and some same stuff</p>
+"""
+
+
+# Style tags are largely ignored in terms of differences, though markup is not eliminated::
+[[cases]]
+old = "<p>Hi <i>you guys</i></p>"
+new = "<p>Hi <i>you</i> guys</p>"
+diff = "<p>Hi <i>you</i> guys</p>"
 
 [[cases]]
-message = "should insert a letter and a space"
-a = "a c"
-b = "a b c"
-should= "a <ins class=\"diffins\">b </ins>c"
+old = "text"
+new = "<p>text</p>"
+diff = "<p>text</p>"
 
 [[cases]]
-message = "should remove a letter and a space"
-a = "a b c"
-b = "a c"
-should = "a <del class=\"diffdel\">b </del>c"
+old = "<i>Hi guys</i> !!"
+new = "<i>Hi guy</i> !!"
+diff = "<i>Hi <ins>guy</ins> <del>guys</del> </i> !!"
 
 [[cases]]
-message = "should change a letter"
-a = "a b c"
-b = "a d c"
-should = "a <del class=\"diffmod\">b</del><ins class=\"diffmod\">d</ins> c"
+old = "H<i>i</i>"
+new = "Hi"
+diff = "<ins>Hi</ins> <del>H<i>i</i></del>"
 
 [[cases]]
-message = "should support Chinese"
-a = "这个是中文内容, Ruby is the bast"
-b = "这是中国语内容，Ruby is the best language."
-should = "这<del class=\"diffdel\">个</del>是中<del class=\"diffmod\">文</del><ins class=\"diffmod\">国语</ins>内<del class=\"diffmod\">容, Ruby</del><ins class=\"diffmod\">容，Ruby</ins> is the <del class=\"diffmod\">bast</del><ins class=\"diffmod\">best language.</ins>"
+old = "<i>A B</i> C"
+new = "<i>A</i> C"
+diff = "<i>A <del>B</del> </i> C"
+
+[[cases]]
+old = "<i>A B</i> C"
+new = "<i>B</i> C"
+diff = "<i> <del>A</del> B</i> C"
+
+[[cases]]
+old = "<p></p>"
+new = "<p></p>"
+diff = "<p></p>"
+
+[[cases]]
+old = "<p>Hi</p>"
+new = "<p>Bye</p>"
+diff = "<p><ins>Bye</ins></p> <p><del>Hi</del></p>"
+
+[[cases]]
+old = "<p>Hi Guy</p>"
+new = "<p>Bye Guy</p>"
+diff = "<p> <ins>Bye</ins> <del>Hi</del> Guy</p>"
+
+[[cases]]
+old = "<p>Hey there</p>"
+new = ""
+diff = "<ins></ins> <p><del>Hey there</del></p>"
+
+
+# Movement between paragraphs is ignored, as tag-based changes are generally ignored::
+[[cases]]
+old = "<p>Hello</p><p>World</p>"
+new = "<p>Hello World</p>"
+diff = "<p>Hello World</p>"
+
+
+# As a special case, changing the href of a link is displayed, and
+# images are treated like words::
+[[cases]]
+old = "<a href=\"http://yahoo.com\">search</a>"
+new = "<a href=\"http://google.com\">search</a>"
+diff = """<a href=\"http://google.com\">search <ins> Link: http://google.com</ins>
+<del> Link: http://yahoo.com</del> </a>""" # 这个例子可能要做一下国际化的处理
+
+[[cases]]
+old = "<p>Print this <img src=\"print.gif\"></p>"
+new = "<p>Print this</p>"
+diff = "<p>Print this <del><img src=\"print.gif\"></del> </p>"
+
+[[cases]]
+old = "<a href=\"http://yahoo.com\">search</a>"
+new = "<a href=\"http://yahoo.com\">search</a>"
+diff = "<a href=\"http://yahoo.com\">search</a>"
+
+
+## Images may sometimes not have 'src' attributes:
+[[cases]]
+old = "<img src=\"tease\"> <img> test <img src=\"test\">"
+new = "<img> test <img src=\"toast\">"
+diff = """<del><img src=\"tease\"></del> <img> test <ins><img src=\"toast\"></ins>
+<del><img src=\"test\"></del>"""
+
+
+## A test of empty elements:
+[[cases]]
+old = "some <br> text"
+new = "some <br> test"
+diff = "some <ins><br> test</ins> <del><br> text</del>"
+
+
+## Whitespace is generally ignored for the diff but preserved during the diff:
+[[cases]]
+wrap = false
+old = "<p> first\nsecond\nthird</p>"
+new = "<p>   &#xA0; first\n  second\nthird  </p>"
+diff = "<p>first\n  second\nthird  </p>"
+
+[[cases]]
+wrap = false
+old = "<pre>first\nsecond\nthird</pre>"
+new = "<pre>first\nsecond\nthird</pre>"
+diff = "<pre>first\nsecond\nthird</pre>"
+
+[[cases]]
+old = "<pre>first\nsecond</pre>"
+new = "<pre>first\nsecond\n third</pre>"
+diff = "<pre>first\nsecond\n <ins>third</ins> </pre>"
+
+# The sixteen combinations::
+
+## First "insert start" (del start/middle/end/none):
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>D B C</b"
+diff = "<b> <ins>D</ins> <del>A</del> B C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>D A C</b>"
+diff = "<b> <ins>D</ins> A <del>B</del> C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>D A B</b>"
+diff = "<b> <ins>D</ins> A B <del>C</del> </b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>D A B C</b>"
+diff = "<b> <ins>D</ins> A B C</b>"
+
+## Next, "insert middle" (del start/middle/end/none):
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>D B C</b>"
+diff = "<b> <ins>D</ins> <del>A</del> B C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A D C</b>"
+diff = "<b>A <ins>D</ins> <del>B</del> C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A D B</b>"
+diff = "<b>A <ins>D</ins> B <del>C</del> </b>"
+
+# This one case hits the threshold of our insensitive matching:
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A D B C</b>"
+diff = "<b> <ins>A D</ins> <del>A</del> B C</b>"
+
+# Then "insert end" (del start/middle/end/none):
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>B C D</b>"
+diff = "<b> <del>A</del> B C <ins>D</ins> </b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A C D</b>"
+diff = "<b>A <del>B</del> C <ins>D</ins> </b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A B D</b>"
+diff = "<b>A B <ins>D</ins> <del>C</del> </b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A B C D</b>"
+diff = "<b>A B C <ins>D</ins> </b>"
+
+## Then no insert (del start/middle/end):
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>B C</b>"
+diff = "<b> <del>A</del> B C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A C</b>"
+diff = "<b>A <del>B</del> C</b>"
+
+[[cases]]
+old = "<b>A B C</b>"
+new = "<b>A B</b>"
+diff = "<b>A B <del>C</del> </b>"
+
+[[cases]]
+old = "<b>A B</b> C"
+new = "<b>A B</b>"
+diff = "<b>A B</b> <del>C</del>"
+
+[[cases]]
+old = "<b>A B</b> <b>C</b>"
+new = "<b>A B</b>"
+diff = "<b>A B</b> <del><b>C</b></del>"
+
+[[cases]]
+old = "A <p><b>hey there</b> <i>how are you?</i></p>"
+new = "A"
+diff = "A <p><del><b>hey there</b> <i>how are you?</i></del></p>"
+
+## Testing a larger document, to make sure there are not weird
+## unnecessary parallels found:
+[[cases]]
+old = """
+<p>This is a test document with many words in it that goes on
+for a while and doesn't have anything do to with the next
+document that we match this against</p>
+"""
+new = """
+<p>This is another document with few similarities to the preceding
+one, but enough that it may have overlap that could turn into
+a confusing series of deletes and inserts.
+</p>"""
+diff = """
+<p><ins>This is another document with few similarities to the
+preceding one, but enough that it may have overlap that could turn
+into a confusing series of deletes and inserts. </ins></p>
+<p><del>This is a test document with many words in it that goes on for
+a while and doesn't have anything do to with the next document that we
+match this against</del></p>
+"""
+
+# Annotation of content can also be done, where every bit of content is
+# marked up with information about where it came from.
+
+# First, some setup; note that html_annotate is called with a sequence
+# of documents and the annotation associated with that document.  We'll
+# just use indexes, but you could use author or timestamp information.

@@ -5,4 +5,4 @@ import sys
 
 from htmldiff import htmldiff
 
-sys.stdout.write(htmldiff(sys.argv[1], sys.argv[2]))
+sys.stdout.write(htmldiff(sys.argv[1], sys.argv[2]).encode('utf-8'))
