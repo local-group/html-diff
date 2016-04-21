@@ -3,5 +3,6 @@
 
 import sys
 
+from htmldiff import htmldiff
 
-sys.stdout.write('{}, {}'.format(sys.argv[1], sys.argv[2]))
+sys.stdout.write(htmldiff(sys.argv[1], sys.argv[2]))
